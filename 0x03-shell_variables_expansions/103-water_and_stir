@@ -1,2 +1,2 @@
 #!/bin/bash
-printf "%o\n" $((5#$WATER + 4#$STIR))
+printf "%x\n" $((5#$WATER + 4#$STIR))
