@@ -1,2 +1,2 @@
 #!/bin/bash
-echo ${base="bestchol":$((5#$WATER + 4#$STIR)):1}
+printf "%X\n" "$(( $((water#$WATER)) + $((stir#$STIR)) ))" | tr '[:upper:]' '[:lower:]'
