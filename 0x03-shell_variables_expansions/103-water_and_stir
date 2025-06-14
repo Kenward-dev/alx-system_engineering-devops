@@ -1,2 +1,2 @@
 #!/bin/bash
-base="bestchol"; echo ${base:$((5#$WATER + 4#$STIR)):1}
+echo ${base="bestchol":$((5#$WATER + 4#$STIR)):1}
