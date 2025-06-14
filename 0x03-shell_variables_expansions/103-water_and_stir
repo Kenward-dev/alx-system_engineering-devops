@@ -1,2 +1,2 @@
 #!/bin/bash
-printf "%x\n" $((5#$WATER + 4#$STIR))
+base="bestchol"; echo ${base:$((5#$WATER + 4#$STIR)):1}
