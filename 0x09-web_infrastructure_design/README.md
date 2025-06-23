@@ -104,3 +104,58 @@ Role:
 * Cannot handle high volumes of concurrent users.
 * No load balancing or distribution of workload is possible in this setup.
 
+
+## Distributed Web Infrastructure
+
+### Infrastructure Overview
+
+This setup expands on the simple one-server stack by distributing responsibilities across **three servers** to improve availability, performance, and maintainability.
+
+* **Server A**: Nginx (web server), Gunicorn (application server), application codebase
+* **Server B**: Nginx (web server), Gunicorn (application server), application codebase
+* **Server C**: HAProxy (load balancer) and MySQL (database server)
+
+
+### Component Roles and Justifications
+
+#### Load Balancer (HAProxy)
+
+* **Why Added**: Balances incoming traffic across multiple backend servers to avoid overload and improve reliability.
+* **Algorithm**: Configured with **Round Robin**, which distributes requests sequentially to each server in turn.
+* **Setup Type**: This is an **Active-Active** configuration — both Server A and Server B handle traffic simultaneously.
+
+#### Web + Application Servers (Server A and B)
+
+* **Why Added**:
+
+  * Share the application load between multiple servers.
+  * Increase fault tolerance — if one server fails, the other continues serving users.
+* **Nginx**: Handles HTTP requests, serves static files, and forwards dynamic requests to the application.
+* **Gunicorn**: Executes the backend logic written in the application codebase.
+* **Application Codebase**: Deployed identically on both servers to maintain consistent behavior.
+
+---
+
+#### Database (MySQL on Server C)
+
+* **Why Added**: Centralized storage for all application data such as users, content, and sessions.
+* All backend servers connect to this single database to perform data operations (reads and writes).
+
+---
+
+### Infrastructure Limitations
+
+#### Single Points of Failure (SPOF)
+
+* **Load Balancer**: If HAProxy becomes unavailable, the entire system is inaccessible even if backend servers are running.
+* **Database**: Without replication or failover, a database crash results in total data inaccessibility.
+
+#### Security Issues
+
+* No **firewall** in place means all ports and services may be exposed to the public internet.
+* Lack of **HTTPS** leaves all user-server communications unencrypted and vulnerable to interception.
+
+#### No Monitoring
+
+* No infrastructure-level monitoring to track service health, performance, or downtime.
+* No automated alerting system to notify administrators of issues.
