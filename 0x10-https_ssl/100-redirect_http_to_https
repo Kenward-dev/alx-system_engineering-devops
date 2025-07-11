@@ -1,0 +1,33 @@
+global
+    daemon
+    maxconn 2048
+    user haproxy
+    group haproxy
+    tune.ssl.default-dh-param 2048
+
+defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+    option httplog
+    option dontlognull
+    retries 3
+    option redispatch
+    option forwardfor
+    option http-server-close
+
+frontend www-http
+    bind *:80
+    redirect scheme https code 301 if !{ ssl_fc }
+
+frontend www-https
+    bind *:443 ssl crt /etc/letsencrypt/live/www.dogtorken.com/www.dogtorken.com.pem
+    reqadd X-Forwarded-Proto:\ https
+    default_backend www-backend
+
+backend www-backend
+    balance roundrobin
+    option httpchk GET /
+    server web-01 web-01.dogtorken.com:80 check
+    server web-02 web-02.dogtorken.com:80 check
