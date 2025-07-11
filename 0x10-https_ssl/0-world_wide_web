@@ -6,19 +6,19 @@ get_subdomain_info() {
     local full_domain="${subdomain}.${domain}"
     
     # shellcheck disable=SC2086
-    local result=$(dig +short $full_domain)
+    local destination=$(dig +short $full_domain)
     
-    if [ -n "$result" ]; then
+    if [ -n "$destination" ]; then
         # shellcheck disable=SC2086
-        local record_type=$(dig $full_domain | awk '/^[^;]/ && /IN/ {print $4}' | head -1)
+        local record_type=$(dig $full_domain | awk '/ANSWER SECTION:/,/^$/ {if(/'"$full_domain"'/ && /IN/) print $4}' | head -1)
         
         if [ -z "$record_type" ]; then
             record_type="A"
         fi
         
-        echo "The subdomain $subdomain is a $record_type record and points to $result"
+        echo "The subdomain $subdomain is a $record_type record and points to $destination"
     else
-        echo "The subdomain $subdomain is a A record and points to (no result)"
+        echo "The subdomain $subdomain is a A record and points to"
     fi
 }
 
