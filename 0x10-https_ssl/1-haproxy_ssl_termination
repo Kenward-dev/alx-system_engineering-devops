@@ -1,0 +1,29 @@
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get install -y certbot
+
+sudo systemctl stop haproxy
+
+sudo certbot certonly --standalone -d www.dogtorken.com
+
+sudo mkdir -p /etc/letsencrypt/live/www.dogtorken.com
+sudo cat /etc/letsencrypt/live/www.dogtorken.com/fullchain.pem \
+    /etc/letsencrypt/live/www.dogtorken.com/privkey.pem \
+    > /etc/letsencrypt/live/www.dogtorken.com/www.dogtorken.com.pem
+
+sudo chmod 600 /etc/letsencrypt/live/www.dogtorken.com/www.dogtorken.com.pem
+sudo chown haproxy:haproxy /etc/letsencrypt/live/www.dogtorken.com/www.dogtorken.com.pem
+
+sudo apt-get install -y haproxy
+
+sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.backup
+sudo cp 1-haproxy_ssl_termination /etc/haproxy/haproxy.cfg
+
+sudo haproxy -f /etc/haproxy/haproxy.cfg -c
+
+sudo systemctl start haproxy
+sudo systemctl enable haproxy
+
+curl -I https://www.dogtorken.com
+curl https://www.dogtorken.com
