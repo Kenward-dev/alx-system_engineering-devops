@@ -6,31 +6,26 @@ get_subdomain_info() {
     local full_domain="${subdomain}.${domain}"
     
     # shellcheck disable=SC2086
-    local destination=$(dig +short $full_domain)
+    local dig_result=$(dig $full_domain)
     
-    if [ -n "$destination" ]; then
-        # shellcheck disable=SC2086
-        local record_type=$(dig $full_domain | awk '/ANSWER SECTION:/,/^$/ {if(/'"$full_domain"'/ && /IN/) print $4}' | head -1)
-        
-        if [ -z "$record_type" ]; then
-            record_type="A"
-        fi
-        
-        echo "The subdomain $subdomain is a $record_type record and points to $destination"
-    else
-        echo "The subdomain $subdomain is a A record and points to"
+    local destination=$(echo "$dig_result" | awk '/^[^;]/ && /'"$full_domain"'.*IN.*A/ {print $NF}')
+    local record_type=$(echo "$dig_result" | awk '/^[^;]/ && /'"$full_domain"'.*IN/ {print $(NF-1)}')
+    
+    if [ -z "$record_type" ]; then
+        record_type="A"
     fi
+    
+    echo "The subdomain $subdomain is a $record_type record and points to $destination"
 }
 
 domain=$1
 subdomain=$2
 
 if [ -z "$subdomain" ]; then
-    subdomains=("www" "lb-01" "web-01" "web-02")
-    
-    for sub in "${subdomains[@]}"; do
-        get_subdomain_info "$domain" "$sub"
-    done
+    get_subdomain_info "$domain" "www"
+    get_subdomain_info "$domain" "lb-01"
+    get_subdomain_info "$domain" "web-01"
+    get_subdomain_info "$domain" "web-02"
 else
     get_subdomain_info "$domain" "$subdomain"
 fi
